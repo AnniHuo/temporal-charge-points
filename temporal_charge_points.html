@@ -1,0 +1,1344 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>temoral_charge_points</title>
+
+<script src="site_libs/jquery-1.11.3/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/yeti.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<link href="site_libs/anchor-sections-1.0/anchor-sections.css" rel="stylesheet" />
+<script src="site_libs/anchor-sections-1.0/anchor-sections.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+<style type="text/css">
+h1 {
+  font-size: 34px;
+}
+h1.title {
+  font-size: 38px;
+}
+h2 {
+  font-size: 30px;
+}
+h3 {
+  font-size: 24px;
+}
+h4 {
+  font-size: 18px;
+}
+h5 {
+  font-size: 16px;
+}
+h6 {
+  font-size: 12px;
+}
+.table th:not([align]) {
+  text-align: left;
+}
+</style>
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+code {
+  color: inherit;
+  background-color: rgba(0, 0, 0, 0.04);
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+</style>
+
+
+<style type="text/css">
+/* padding for bootstrap navbar */
+body {
+  padding-top: 45px;
+  padding-bottom: 40px;
+}
+/* offset scroll position for anchor links (for fixed navbar)  */
+.section h1 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h2 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h3 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h4 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h5 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.section h6 {
+  padding-top: 50px;
+  margin-top: -50px;
+}
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #ffffff;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script>
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.parent().addClass('active');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row-fluid">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Temporal Charge Points in London</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.html">Home</a>
+</li>
+<li>
+  <a href="temporal_charge_points.html">About</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div class="fluid-row" id="header">
+
+
+
+<h1 class="title toc-ignore">temoral_charge_points</h1>
+
+</div>
+
+
+<div id="load-packages" class="section level2">
+<h2><span class="header-section-number">0.1</span> Load packages</h2>
+<div id="load-basic-package" class="section level3">
+<h3><span class="header-section-number">0.1.1</span> Load basic package</h3>
+<pre class="r"><code>library(spatstat)</code></pre>
+<pre><code>## Loading required package: spatstat.data</code></pre>
+<pre><code>## Loading required package: nlme</code></pre>
+<pre><code>## Loading required package: rpart</code></pre>
+<pre><code>## 
+## spatstat 1.64-1       (nickname: &#39;Help you I can, yes!&#39;) 
+## For an introduction to spatstat, type &#39;beginner&#39;</code></pre>
+<pre><code>## 
+## Note: spatstat version 1.64-1 is out of date by more than 7 months; we recommend upgrading to the latest version.</code></pre>
+<pre class="r"><code>library(here)</code></pre>
+<pre><code>## here() starts at /Users/huoanni/OneDrive - University College London/GIS/temporal charge points</code></pre>
+<pre class="r"><code>library(sp)
+library(rgeos)</code></pre>
+<pre><code>## rgeos version: 0.5-6, (SVN revision (unknown))
+##  GEOS runtime version: 3.8.1-CAPI-1.13.3 
+##  Linking to sp version: 1.4-4 
+##  Polygon checking: TRUE</code></pre>
+<pre class="r"><code>library(maptools)</code></pre>
+<pre><code>## Checking rgeos availability: TRUE</code></pre>
+<pre class="r"><code>library(GISTools)</code></pre>
+<pre><code>## Loading required package: RColorBrewer</code></pre>
+<pre><code>## Loading required package: MASS</code></pre>
+<pre><code>## 
+## Attaching package: &#39;MASS&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:spatstat&#39;:
+## 
+##     area</code></pre>
+<pre class="r"><code>library(tmap)
+library(sf)</code></pre>
+<pre><code>## Linking to GEOS 3.8.1, GDAL 3.2.0, PROJ 7.2.0</code></pre>
+<pre class="r"><code>library(geojson)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;geojson&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:graphics&#39;:
+## 
+##     polygon</code></pre>
+<pre class="r"><code>library(geojsonio)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;geojsonio&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:base&#39;:
+## 
+##     pretty</code></pre>
+<pre class="r"><code>library(tmaptools)
+library(tidyverse)</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;cli&#39;:
+##   method     from    
+##   print.boxx spatstat</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.3.2     ✓ purrr   0.3.4
+## ✓ tibble  3.0.4     ✓ dplyr   1.0.2
+## ✓ tidyr   1.1.2     ✓ stringr 1.4.0
+## ✓ readr   1.4.0     ✓ forcats 0.5.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+## x dplyr::collapse() masks nlme::collapse()
+## x dplyr::filter()   masks stats::filter()
+## x dplyr::lag()      masks stats::lag()
+## x dplyr::select()   masks MASS::select()</code></pre>
+<pre class="r"><code>library(spdep)</code></pre>
+<pre><code>## Loading required package: spData</code></pre>
+<pre><code>## To access larger datasets in this package, install the spDataLarge
+## package with: `install.packages(&#39;spDataLarge&#39;,
+## repos=&#39;https://nowosad.github.io/drat/&#39;, type=&#39;source&#39;)`</code></pre>
+</div>
+<div id="load-plot-library" class="section level3">
+<h3><span class="header-section-number">0.1.2</span> load plot library</h3>
+<pre class="r"><code>library(ggplot2)
+library(plotly)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;plotly&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     last_plot</code></pre>
+<pre><code>## The following object is masked from &#39;package:MASS&#39;:
+## 
+##     select</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     filter</code></pre>
+<pre><code>## The following object is masked from &#39;package:graphics&#39;:
+## 
+##     layout</code></pre>
+<pre class="r"><code>library(RColorBrewer)</code></pre>
+</div>
+</div>
+<div id="load-data" class="section level2">
+<h2><span class="header-section-number">0.2</span> load data</h2>
+<div id="load-.csv-file" class="section level3">
+<h3><span class="header-section-number">0.2.1</span> load .csv file</h3>
+<pre class="r"><code>charge &lt;- read_csv(&quot;national-charge-point-registry.csv&quot;)</code></pre>
+<pre><code>## 
+## ── Column specification ────────────────────────────────────────────────────────
+## cols(
+##   .default = col_logical(),
+##   chargeDeviceID = col_character(),
+##   reference = col_character(),
+##   name = col_character(),
+##   latitude = col_double(),
+##   longitude = col_double(),
+##   buildingName = col_character(),
+##   buildingNumber = col_character(),
+##   thoroughfare = col_character(),
+##   street = col_character(),
+##   doubleDependantLocality = col_character(),
+##   dependantLocality = col_character(),
+##   town = col_character(),
+##   county = col_character(),
+##   postcode = col_character(),
+##   countryCode = col_character(),
+##   locationLongDescription = col_character(),
+##   deviceManufacturer = col_character(),
+##   deviceOwnerName = col_character(),
+##   deviceOwnerWebsite = col_character(),
+##   deviceOwnerTelephoneNo = col_character()
+##   # ... with 69 more columns
+## )
+## ℹ Use `spec()` for the full column specifications.</code></pre>
+<pre><code>## Warning: 15281 parsing failures.
+## row         col   expected              actual                                 file
+## 136 dateUpdated valid date 0000-00-00 00:00:00 &#39;national-charge-point-registry.csv&#39;
+## 139 dateUpdated valid date 0000-00-00 00:00:00 &#39;national-charge-point-registry.csv&#39;
+## 140 dateUpdated valid date 0000-00-00 00:00:00 &#39;national-charge-point-registry.csv&#39;
+## 144 dateUpdated valid date 0000-00-00 00:00:00 &#39;national-charge-point-registry.csv&#39;
+## 145 dateUpdated valid date 0000-00-00 00:00:00 &#39;national-charge-point-registry.csv&#39;
+## ... ........... .......... ................... ....................................
+## See problems(...) for more details.</code></pre>
+<pre class="r"><code>summary(charge$chargeDeviceStatus)</code></pre>
+<pre><code>##    Length     Class      Mode 
+##     12332 character character</code></pre>
+</div>
+<div id="load-shapefile" class="section level3">
+<h3><span class="header-section-number">0.2.2</span> load shapefile</h3>
+<pre class="r"><code>londonwards &lt;- st_read(&quot;ESRI/London_Ward_CityMerged.shp&quot;) %&gt;% 
+  st_transform(., 27700)</code></pre>
+<pre><code>## Reading layer `London_Ward_CityMerged&#39; from data source `/Users/huoanni/OneDrive - University College London/GIS/temporal charge points/ESRI/London_Ward_CityMerged.shp&#39; using driver `ESRI Shapefile&#39;
+## Simple feature collection with 625 features and 7 fields
+## geometry type:  POLYGON
+## dimension:      XY
+## bbox:           xmin: 503568.2 ymin: 155850.8 xmax: 561957.5 ymax: 200933.9
+## projected CRS:  OSGB 1936 / British National Grid</code></pre>
+<pre class="r"><code>london_outline &lt;- londonwards %&gt;%
+  summarise(area = sum(HECTARES))</code></pre>
+</div>
+</div>
+<div id="filter-data" class="section level2">
+<h2><span class="header-section-number">0.3</span> filter data</h2>
+<pre class="r"><code>chargepoints &lt;- charge [charge$chargeDeviceStatus==&quot;In service&quot; &amp; !is.na(charge$latitude) &amp; !is.na(charge$longitude),] </code></pre>
+<div id="function-to-filter-year-2014-2017-2020-register" class="section level3">
+<h3><span class="header-section-number">0.3.1</span> function to filter year (2014, 2017, 2020 register)</h3>
+<pre class="r"><code>filterfun &lt;- function(end){
+  enddate &lt;- end
+  
+  filterpoints &lt;- chargepoints %&gt;% 
+    filter(chargepoints$dateCreated&lt;=enddate)
+  return(filterpoints)
+}</code></pre>
+</div>
+<div id="function-to-transform-projection-crop-to-london" class="section level3">
+<h3><span class="header-section-number">0.3.2</span> function to transform projection &amp; crop to London</h3>
+<pre class="r"><code>londonPfun &lt;- function(filteredpoints){
+  transpoints &lt;- filteredpoints %&gt;% 
+    select(., c(3,4,5)) %&gt;% 
+    st_as_sf(., coords = c(&quot;longitude&quot;, &quot;latitude&quot;),crs = 4326) %&gt;% 
+    st_transform(., 27700) %&gt;%
+    distinct()
+  
+  charge_london &lt;- st_intersects(london_outline, transpoints)
+  londonpoints &lt;- transpoints[unlist(charge_london),]
+  return(londonpoints)
+}</code></pre>
+</div>
+<div id="instance-object" class="section level3">
+<h3><span class="header-section-number">0.3.3</span> instance object</h3>
+<pre class="r"><code>filterpoints14 &lt;- filterfun(&quot;2014-12-31&quot;)
+londonpoints2014 &lt;- londonPfun(filterpoints14)
+
+filterpoints17 &lt;- filterfun(&quot;2017-12-31&quot;)
+londonpoints2017 &lt;- londonPfun(filterpoints17)
+
+filterpoints20 &lt;- filterfun(&quot;2020-12-31&quot;)
+londonpoints2020 &lt;- londonPfun(filterpoints20)</code></pre>
+</div>
+<div id="plot-data" class="section level3">
+<h3><span class="header-section-number">0.3.4</span> plot data</h3>
+<pre class="r"><code>tmap_mode(&quot;plot&quot;)</code></pre>
+<pre><code>## tmap mode set to plotting</code></pre>
+<pre class="r"><code>tm1 &lt;- tm_shape(london_outline) +
+  tm_fill() +
+  tm_shape(londonpoints2014) +
+  tm_dots(col = &quot;red&quot;, size = .01)+
+  tm_layout(frame=FALSE)+
+  tm_credits(&quot;(a)&quot;, position=c(0,0.85), size=1)
+
+tm2 &lt;- tm_shape(london_outline) +
+  tm_fill() +
+  tm_shape(londonpoints2017) +
+  tm_dots(col = &quot;red&quot;, size = .01)+
+  tm_layout(frame=FALSE)+
+  tm_credits(&quot;(b)&quot;, position=c(0,0.85), size=1)
+
+tm3 &lt;- tm_shape(london_outline) +
+  tm_fill() +
+  tm_shape(londonpoints2020) +
+  tm_dots(col = &quot;red&quot;, size = .01)+
+  tm_layout(frame=FALSE)+
+  tm_credits(&quot;(c)&quot;, position=c(0,0.85), size=1)
+
+
+t &lt;- tmap_arrange(tm1, tm2, tm3, ncol=3)
+t</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<pre class="r"><code>tmap_save(t, &#39;london charge points.png&#39;)</code></pre>
+<pre><code>## Map saved to /Users/huoanni/OneDrive - University College London/GIS/temporal charge points/london charge points.png</code></pre>
+<pre><code>## Resolution: 2100 by 2100 pixels</code></pre>
+<pre><code>## Size: 7 by 7 inches (300 dpi)</code></pre>
+</div>
+</div>
+<div id="plot-density-hex" class="section level2">
+<h2><span class="header-section-number">0.4</span> plot density hex</h2>
+<div id="get-coordinates-from-sf-object" class="section level3">
+<h3><span class="header-section-number">0.4.1</span> get coordinates from sf object</h3>
+<pre class="r"><code># get coordinates from sf object -&gt; ggplot2 format
+coordsfun &lt;- function(londonpoints, year){
+  charge_points_coords &lt;- matrix(unlist(londonpoints$geometry),ncol=2,byrow=T) %&gt;%
+    as.data.frame() %&gt;% 
+    na.omit() %&gt;% 
+    mutate(year=year)
+  return(charge_points_coords)
+}
+
+# inspect
+charge_points_coords14 &lt;- coordsfun(londonpoints2014, &quot;2014&quot;)
+head(charge_points_coords14)</code></pre>
+<pre><code>##       V1       V2 year
+## 1 541295 172229.1 2014
+## 2 519521 183884.1 2014
+## 3 528985 180636.0 2014
+## 4 525229 165919.0 2014
+## 5 530829 192766.1 2014
+## 6 513796 175801.1 2014</code></pre>
+</div>
+<div id="see-trend-in-massive-datasets" class="section level3">
+<h3><span class="header-section-number">0.4.2</span> see trend in massive datasets</h3>
+<pre class="r"><code>charge_points_coords14 &lt;- coordsfun(londonpoints2014, &quot;2014&quot;)
+charge_points_coords17 &lt;- coordsfun(londonpoints2017, &quot;2017&quot;)
+charge_points_coords20 &lt;- coordsfun(londonpoints2020, &quot;2020&quot;)
+
+charge_points_ggplot &lt;- rbind(charge_points_coords14, 
+                              charge_points_coords17, 
+                              charge_points_coords20)</code></pre>
+<pre class="r"><code>class(london_outline)</code></pre>
+<pre><code>## [1] &quot;sf&quot;         &quot;data.frame&quot;</code></pre>
+<pre class="r"><code># methods(class = &quot;sf&quot;)
+df &lt;- as.data.frame(st_coordinates(london_outline))
+class(df)</code></pre>
+<pre><code>## [1] &quot;data.frame&quot;</code></pre>
+<pre class="r"><code>ggplot()+
+  geom_polygon(data=df, aes(X, Y, group=L1))+
+  coord_quickmap()</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(charge_points_ggplot, aes(x=V1, y=V2, group=year)) +
+  geom_hex(bins=50, na.rm=TRUE) +
+  geom_polygon(data=df, fill=NA, 
+               color=&quot;black&quot;, size=.2,
+               aes(X, Y, group=L1)) +
+  labs(fill = &quot;charge point count \n&quot;, 
+       title = &quot;Charge Points in London \n&quot;) +
+  scale_fill_continuous(high=brewer.pal(7, &quot;Reds&quot;)[7], 
+                        low=brewer.pal(7, &quot;Reds&quot;)[1]) +
+  xlab(NULL)+
+  ylab(NULL)+
+  scale_x_discrete()+
+  scale_y_discrete()+
+  scale_colour_gradient()+
+  facet_wrap(~ year, ncol = 2)+
+  theme_minimal()+
+  theme(strip.text = element_text(size=11), 
+        legend.key.size = unit(11, &quot;pt&quot;),
+        legend.text = element_text(size=8), 
+        legend.title = element_text(size=11))+
+  coord_quickmap()</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<pre class="r"><code>ggsave(&quot;charge points facet wrap.jpg&quot;)</code></pre>
+<pre><code>## Saving 7 x 5 in image</code></pre>
+</div>
+</div>
+<div id="ripleys-k" class="section level2">
+<h2><span class="header-section-number">0.5</span> Ripley’s K</h2>
+<pre class="r"><code># transform sf to sp
+london_sp &lt;- as(londonwards,&#39;Spatial&#39;)</code></pre>
+<pre><code>## Warning in showSRID(uprojargs, format = &quot;PROJ&quot;, multiline = &quot;NO&quot;, prefer_proj
+## = prefer_proj): Discarded datum Unknown based on Airy 1830 ellipsoid in CRS
+## definition</code></pre>
+<pre><code>## Warning in showSRID(SRS_string, format = &quot;PROJ&quot;, multiline = &quot;NO&quot;, prefer_proj =
+## prefer_proj): Discarded datum OSGB 1936 in CRS definition</code></pre>
+<pre class="r"><code># get the window of observation using maptools package
+window &lt;- as.owin.SpatialPolygons(london_sp)
+# inspect
+window</code></pre>
+<pre><code>## window: polygonal boundary
+## enclosing rectangle: [503568.2, 561957.5] x [155850.8, 200933.9] units</code></pre>
+<pre class="r"><code># create ppp object
+charge_ppp &lt;- ppp(x=charge_points_coords20[,1],
+                  y=charge_points_coords20[,2],
+                  window=window,check=T)
+
+# inspect
+plot(charge_ppp)</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<pre class="r"><code># check for duplicates
+any(duplicated(charge_ppp))</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code># count the number of duplicated points
+sum(multiplicity(charge_ppp) &gt; 1)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code># get the average distance to the first, second, ..., the hundredth, nearest neighbour
+charge_ann &lt;- apply(nndist(charge_ppp, k=1:100),2,FUN=mean)
+# plot the results
+plot(charge_ann ~ seq(1:100))</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<pre class="r"><code># calculate Ripley&#39;s K for charge locations, maximum radius of 4 kilometers
+plot(Kest(charge_ppp,correction=&#39;border&#39;,rmax=2000))</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+</div>
+<div id="density-analysis" class="section level2">
+<h2><span class="header-section-number">0.6</span> density analysis</h2>
+<pre class="r"><code># create and plot a completely spatially random point pattern of the same size as charge points data
+plot(rpoispp(3817))</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<pre class="r"><code># chi-square between observed pattern and Poisson sampled points
+quadrat.test(charge_ppp,nx=15,ny=15)</code></pre>
+<pre><code>## Warning: Some expected counts are small; chi^2 approximation may be inaccurate</code></pre>
+<pre><code>## 
+##  Chi-squared test of CSR using quadrat counts
+## 
+## data:  charge_ppp
+## X2 = 10959, df = 164, p-value &lt; 2.2e-16
+## alternative hypothesis: two.sided
+## 
+## Quadrats: 165 tiles (irregular windows)</code></pre>
+<div id="kernel-density-analysis" class="section level3">
+<h3><span class="header-section-number">0.6.1</span> kernel density analysis</h3>
+<pre class="r"><code># kernel density estimation with a 1000 metre bandwidth
+plot(density.ppp(charge_ppp,sigma=1000))</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+</div>
+<div id="dbscan-clustering-analysis" class="section level3">
+<h3><span class="header-section-number">0.6.2</span> dbscan clustering analysis</h3>
+<pre class="r"><code>library(fpc)</code></pre>
+<pre class="r"><code># Run dbscan&#39;s DB-Scan function with eps and minPts set as follows
+chargepoints_dbscan &lt;- fpc::dbscan(charge_points_coords20[1:2], eps = 3000, MinPts = 200)
+
+# Plot our clusters and points - note the plotting code for the dbscan plot is different to that of fpc
+plot(chargepoints_dbscan, 
+     londonpoints2020, 
+     main = &quot;DBSCAN for charge points&quot;)
+plot(london_outline$geometry, add=T)</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+</div>
+<div id="k-nearest-neighbor-distance" class="section level3">
+<h3><span class="header-section-number">0.6.3</span> k nearest neighbor distance</h3>
+<pre class="r"><code>library(dbscan)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dbscan&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:fpc&#39;:
+## 
+##     dbscan</code></pre>
+<pre class="r"><code>charge_points_coords20[1:2]%&gt;%
+  dbscan::kNNdistplot(.,k=4)</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+</div>
+<div id="function-to-map-charge-point-density-by-wards" class="section level3">
+<h3><span class="header-section-number">0.6.4</span> function to map charge point density by wards</h3>
+<pre class="r"><code>pointsjoinedfun &lt;- function(londonpointsyear){
+  londonpointsyear &lt;- londonpointsyear
+  charge_points_ward &lt;- londonpointsyear[londonwards,]
+  
+  points_wards &lt;- londonwards%&gt;%
+    st_join(charge_points_ward)%&gt;%
+    add_count(NAME)%&gt;%
+    janitor::clean_names()%&gt;%
+    #then density of the points per ward
+    mutate(density=(n/hectares)*1000) %&gt;% 
+    mutate(id=1) %&gt;% 
+    mutate(sumpoints=aggregate(n~id,.,FUN=sum)) %&gt;% 
+    mutate(percentage=((n/sumpoints[1, 2]))*100) %&gt;% 
+    #select density and some other variables 
+    dplyr::select(density, percentage, name, gss_code, n) %&gt;% 
+    distinct(., gss_code, .keep_all = TRUE)
+  
+  # same quick choropleth map
+  points_wards &lt;- points_wards %&gt;%                    
+    group_by(gss_code) %&gt;%         
+    summarise(density=first(density),
+              percentage=first(percentage),
+              wardname=first(name),
+              chargepointcount= first(n))
+  return(points_wards)
+}</code></pre>
+<pre class="r"><code># test
+percent_ward14 &lt;- pointsjoinedfun(londonpoints2014)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>head(percent_ward14)</code></pre>
+<pre><code>## Simple feature collection with 6 features and 5 fields
+## geometry type:  POLYGON
+## dimension:      XY
+## bbox:           xmin: 543417.3 ymin: 183488.5 xmax: 551944.6 ymax: 191137.3
+## projected CRS:  OSGB 1936 / British National Grid
+## # A tibble: 6 x 6
+##   gss_code density percentage wardname chargepointcount
+##   &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt; &lt;chr&gt;               &lt;int&gt;
+## 1 E050000…   23.4      0.221  Abbey                   3
+## 2 E050000…    7.33     0.0737 Alibon                  1
+## 3 E050000…    7.76     0.0737 Becontr…                1
+## 4 E050000…    2.95     0.0737 Chadwel…                1
+## 5 E050000…    2.90     0.0737 Eastbro…                1
+## 6 E050000…    6.95     0.0737 Eastbury                1
+## # … with 1 more variable: geometry &lt;POLYGON [m]&gt;</code></pre>
+<pre class="r"><code>densityfun &lt;- function(londonpointsyear, number){
+  points_wards &lt;- pointsjoinedfun(londonpointsyear)
+
+  breaks = c(0, 20, 30, 40, 50, 60, 200, 400, +Inf) 
+  tm &lt;- tm_shape(points_wards) +
+    tm_polygons(&quot;density&quot;,
+                breaks=breaks,
+                palette=RColorBrewer::brewer.pal(8, &quot;YlOrRd&quot;),
+                midpoint=NA) +
+    tm_legend(show=FALSE)+
+    tm_layout(frame=FALSE)+
+    tm_credits(number, position=c(0,0.85), size=1)
+  
+  return(tm)
+}</code></pre>
+<pre class="r"><code>legendfun &lt;- function(londonpointsyear){
+  points_wards &lt;- pointsjoinedfun(londonpointsyear)
+  
+  breaks = c(0, 20, 30, 40, 50, 60, 200, 400, +Inf) 
+  legend &lt;- tm_shape(points_wards) +
+    tm_polygons(&quot;density&quot;,
+                breaks=breaks,
+                palette=RColorBrewer::brewer.pal(8, &quot;YlOrRd&quot;), 
+                title=&quot;Density of Charge Points in London \n(per thousand hectare)&quot;) +
+    tm_scale_bar(position=c(0.2,0.04), text.size=0.6)+
+    tm_compass(north=0, position=c(0.65,0.2))+
+   
+    tm_layout(title = &quot;Charge Points Density Trend&quot;, 
+              legend.title.size=1,
+              legend.text.size = 0.6,
+              legend.only = TRUE, 
+              legend.position=c(0.2,0.25),asp=0.1)
+  
+  return(legend)
+}</code></pre>
+</div>
+<div id="tmap---charge-point-density-by-ward" class="section level3">
+<h3><span class="header-section-number">0.6.5</span> tmap - charge point density by ward</h3>
+<pre class="r"><code>tm1 &lt;- densityfun(londonpoints2014, &quot;a)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>tm2 &lt;- densityfun(londonpoints2017, &quot;b)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>tm3 &lt;- densityfun(londonpoints2020, &quot;c)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>legend &lt;- legendfun(londonpoints2020)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>t_density &lt;- tmap_arrange(tm1, tm2, tm3, legend, ncol=2)
+t_density</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<pre class="r"><code>tmap_save(t_density, &#39;london charge points density.png&#39;)</code></pre>
+<pre><code>## Map saved to /Users/huoanni/OneDrive - University College London/GIS/temporal charge points/london charge points density.png</code></pre>
+<pre><code>## Resolution: 2100 by 2100 pixels</code></pre>
+<pre><code>## Size: 7 by 7 inches (300 dpi)</code></pre>
+</div>
+<div id="function-to-map-charge-point-percentage-by-wards" class="section level3">
+<h3><span class="header-section-number">0.6.6</span> function to map charge point percentage by wards</h3>
+<pre class="r"><code>percentfun &lt;- function(londonpointsyear, number){
+  points_wards &lt;- pointsjoinedfun(londonpointsyear)
+
+  breaks = c(0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 0.7, +Inf) 
+  tm &lt;- tm_shape(points_wards) +
+    tm_polygons(&quot;percentage&quot;,
+                breaks=breaks,
+                palette=RColorBrewer::brewer.pal(8, &quot;YlOrRd&quot;),
+                midpoint=NA) +
+    tm_legend(show=FALSE)+
+    tm_layout(frame=FALSE)+
+    tm_credits(number, position=c(0,0.85), size=1)
+  
+  return(tm)
+}</code></pre>
+<pre class="r"><code>legendpfun &lt;- function(londonpointsyear){
+  points_wards &lt;- pointsjoinedfun(londonpointsyear)
+  
+  breaks = c(0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 0.7, +Inf)  
+  legend &lt;- tm_shape(points_wards) +
+    tm_polygons(&quot;percentage&quot;,
+                breaks=breaks,
+                palette=RColorBrewer::brewer.pal(8, &quot;YlOrRd&quot;), 
+                title=&quot;Percentage of Charge Points in London \n(by wards)&quot;) +
+    tm_scale_bar(position=c(0.2,0.04), text.size=0.6)+
+    tm_compass(north=0, position=c(0.65,0.2))+
+   
+    tm_layout(title = &quot;Charge Points Distribution Trend&quot;, 
+              legend.title.size=1,
+              legend.text.size = 0.6,
+              legend.only = TRUE, 
+              legend.position=c(0.2,0.25),asp=0.1)
+  
+  return(legend)
+}</code></pre>
+</div>
+<div id="tmap---charge-point-density-by-ward-1" class="section level3">
+<h3><span class="header-section-number">0.6.7</span> tmap - charge point density by ward</h3>
+<pre class="r"><code>p1 &lt;- percentfun(londonpoints2014, &quot;a)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>p2 &lt;- percentfun(londonpoints2017, &quot;b)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>p3 &lt;- percentfun(londonpoints2020, &quot;c)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>legendp &lt;- legendpfun(londonpoints2020)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>percentage &lt;- tmap_arrange(p1, p2, p3, legendp, ncol=2)
+percentage</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
+<pre class="r"><code>tmap_save(percentage, &#39;Charge Points Distribution Trend.png&#39;)</code></pre>
+<pre><code>## Map saved to /Users/huoanni/OneDrive - University College London/GIS/temporal charge points/Charge Points Distribution Trend.png</code></pre>
+<pre><code>## Resolution: 2100 by 2100 pixels</code></pre>
+<pre><code>## Size: 7 by 7 inches (300 dpi)</code></pre>
+</div>
+</div>
+<div id="spatial-autocorrelation" class="section level2">
+<h2><span class="header-section-number">0.7</span> spatial autocorrelation</h2>
+<div id="function-to-calculate-the-centroids" class="section level3">
+<h3><span class="header-section-number">0.7.1</span> function to calculate the centroids</h3>
+<pre class="r"><code># library(spdep)
+# First calculate the centroids of all Wards in London
+
+coordsWfun &lt;- function(londonpointsyear){
+  points_wards &lt;- pointsjoinedfun(londonpointsyear)
+  coordsW &lt;- points_wards %&gt;% 
+    st_centroid() %&gt;%
+    st_geometry()
+}</code></pre>
+<pre class="r"><code># test
+coordsW &lt;- coordsWfun(londonpoints2020)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre><code>## Warning in st_centroid.sf(.): st_centroid assumes attributes are constant over
+## geometries of x</code></pre>
+<pre class="r"><code>plot(coordsW,axes=TRUE)</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+</div>
+<div id="function-to-create-a-neighbours-list" class="section level3">
+<h3><span class="header-section-number">0.7.2</span> function to create a neighbours list</h3>
+<pre class="r"><code>#create a neighbours list
+ward_nbfun &lt;- function(londonpointsyear){
+  points_wards &lt;- pointsjoinedfun(londonpointsyear)
+  ward_nb &lt;- points_wards %&gt;% 
+    poly2nb(., queen=T)
+  return(ward_nb)
+}</code></pre>
+<pre class="r"><code># test
+ward_nb20 &lt;- ward_nbfun(londonpoints2020)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>plot(ward_nb20, st_geometry(coordsW), col=&quot;red&quot;)
+# add a map underneath
+points_wards &lt;- pointsjoinedfun(londonpoints2020) </code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>plot(points_wards$geometry, add=T)</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-42-1.png" width="672" /></p>
+</div>
+<div id="function-to-create-spatial-weights" class="section level3">
+<h3><span class="header-section-number">0.7.3</span> function to create spatial weights</h3>
+<pre class="r"><code>#create a spatial weights object from these weights
+ward_lwfun &lt;- function(londonpointsyear){
+  ward_lw &lt;- ward_nbfun(londonpointsyear) %&gt;% 
+    nb2listw(., style=&quot;C&quot;)
+  return(ward_lw)
+}</code></pre>
+<pre class="r"><code># test
+ward_lw20 &lt;- ward_lwfun(londonpoints2020)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>head(ward_lw20$neighbours)</code></pre>
+<pre><code>## [[1]]
+## [1]   6   7  10 462 468 482
+## 
+## [[2]]
+## [1]  5  8  9 11 12 13 16
+## 
+## [[3]]
+## [1]  10  11  12  15 480 483
+## 
+## [[4]]
+## [1]  17 281 291 470 473 481
+## 
+## [[5]]
+## [1]   2   9  16 281 283 290
+## 
+## [[6]]
+## [1]  1  7  8 10 11 14</code></pre>
+</div>
+<div id="function-to-run-global-morans-i" class="section level3">
+<h3><span class="header-section-number">0.7.4</span> function to run Global Moran’s I</h3>
+<pre class="r"><code>I_ward_globalfun &lt;- function(londonpointsyear){
+  ward_lw &lt;- ward_lwfun(londonpointsyear)
+  
+  I_ward_global &lt;- londonpointsyear %&gt;% 
+    pointsjoinedfun(.) %&gt;% 
+    pull(density) %&gt;%
+    as.vector()%&gt;% # Converts a distributed matrix into a non-distributed vector
+    moran.test(., ward_lw) # density &lt;-&gt; spatial (similar or not)
+  return(I_ward_global)
+}</code></pre>
+</div>
+<div id="global-morans-i-for-2014-2017-2020" class="section level3">
+<h3><span class="header-section-number">0.7.5</span> Global Moran’s I for 2014, 2017, 2020</h3>
+<pre class="r"><code>I_ward_global14 &lt;- I_ward_globalfun(londonpoints2014)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>I_ward_global17 &lt;- I_ward_globalfun(londonpoints2017)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>I_ward_global20 &lt;- I_ward_globalfun(londonpoints2020)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>I_ward_global14</code></pre>
+<pre><code>## 
+##  Moran I test under randomisation
+## 
+## data:  .  
+## weights: ward_lw    
+## 
+## Moran I statistic standard deviate = 17.811, p-value &lt; 2.2e-16
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##      0.4040742881     -0.0016025641      0.0005188088</code></pre>
+<pre class="r"><code>I_ward_global17</code></pre>
+<pre><code>## 
+##  Moran I test under randomisation
+## 
+## data:  .  
+## weights: ward_lw    
+## 
+## Moran I statistic standard deviate = 11.683, p-value &lt; 2.2e-16
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##      0.2621588029     -0.0016025641      0.0005097073</code></pre>
+<pre class="r"><code>I_ward_global20</code></pre>
+<pre><code>## 
+##  Moran I test under randomisation
+## 
+## data:  .  
+## weights: ward_lw    
+## 
+## Moran I statistic standard deviate = 25.345, p-value &lt; 2.2e-16
+## alternative hypothesis: greater
+## sample estimates:
+## Moran I statistic       Expectation          Variance 
+##       0.579937112      -0.001602564       0.000526483</code></pre>
+</div>
+<div id="function-to-run-local-morans-i" class="section level3">
+<h3><span class="header-section-number">0.7.6</span> function to run Local Moran’s I</h3>
+<pre class="r"><code>ward_lw20 &lt;- ward_lwfun(londonpoints2020)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>  I_ward_local_count &lt;- londonpoints2020 %&gt;% 
+    pointsjoinedfun(.) %&gt;% 
+    pull(chargepointcount) %&gt;%
+    as.vector()%&gt;% 
+    localmoran(., ward_lw20) %&gt;% 
+    as_tibble()</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>  I_ward_local_density &lt;- londonpoints2020 %&gt;% 
+    pointsjoinedfun(.) %&gt;% 
+    pull(density) %&gt;%
+    as.vector()%&gt;% 
+    localmoran(., ward_lw20) %&gt;% 
+    as_tibble()</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>slice_head(I_ward_local_count, n=5)</code></pre>
+<pre><code>## # A tibble: 5 x 5
+##   Ii         E.Ii         Var.Ii     Z.Ii        `Pr(z &gt; 0)`
+##   &lt;localmrn&gt; &lt;localmrn&gt;   &lt;localmrn&gt; &lt;localmrn&gt;  &lt;localmrn&gt; 
+## 1 -0.0152550 -0.001633048 0.1694194  -0.03309466 0.5132004  
+## 2 -0.1351878 -0.001905222 0.1973404  -0.30003036 0.6179230  
+## 3  0.4127932 -0.001633048 0.1694194   1.00685228 0.1570029  
+## 4  0.3218993 -0.001633048 0.1694194   0.78602481 0.2159265  
+## 5 -0.1455548 -0.001633048 0.1694194  -0.34965929 0.6367028</code></pre>
+<pre class="r"><code>slice_head(I_ward_local_density, n=5)</code></pre>
+<pre><code>## # A tibble: 5 x 5
+##   Ii          E.Ii         Var.Ii     Z.Ii        `Pr(z &gt; 0)`
+##   &lt;localmrn&gt;  &lt;localmrn&gt;   &lt;localmrn&gt; &lt;localmrn&gt;  &lt;localmrn&gt; 
+## 1 -0.02311287 -0.001633048 0.1675912  -0.05246928 0.5209226  
+## 2  0.09282148 -0.001905222 0.1952145   0.21439584 0.4151192  
+## 3  0.25021517 -0.001633048 0.1675912   0.61519570 0.2692127  
+## 4  0.27698598 -0.001633048 0.1675912   0.68058939 0.2480657  
+## 5  0.07334936 -0.001633048 0.1675912   0.18316134 0.4273357</code></pre>
+<pre class="r"><code># use the local moran function to generate I for each ward in the city
+
+I_ward_localfun &lt;- function(londonpointsyear){
+  ward_lw &lt;- ward_lwfun(londonpointsyear)
+  
+  I_ward_local_count &lt;- londonpointsyear %&gt;% 
+    pointsjoinedfun(.) %&gt;% 
+    pull(chargepointcount) %&gt;%
+    as.vector()%&gt;% 
+    localmoran(., ward_lw) %&gt;% 
+    as_tibble()
+  I_ward_local_density &lt;- londonpointsyear %&gt;% 
+    pointsjoinedfun(.) %&gt;% 
+    pull(density) %&gt;%
+    as.vector()%&gt;% 
+    localmoran(., ward_lw) %&gt;% 
+    as_tibble()
+  
+  tm_local_moran &lt;- londonpointsyear %&gt;% 
+    pointsjoinedfun(.) %&gt;%
+    mutate(charge_count_I = as.numeric(I_ward_local_count$Ii))%&gt;%
+    mutate(charge_count_Iz =as.numeric(I_ward_local_count$Z.Ii))%&gt;%
+    mutate(density_I =as.numeric(I_ward_local_density$Ii))%&gt;%
+    mutate(density_Iz =as.numeric(I_ward_local_density$Z.Ii))
+  
+  return(tm_local_moran)
+}</code></pre>
+</div>
+<div id="function-to-run-tmap-for-local-morans-i" class="section level3">
+<h3><span class="header-section-number">0.7.7</span> function to run tmap for Local Moran’s I</h3>
+<pre class="r"><code>tmap_local_moranfun &lt;- function(londonpointsyear, number){
+  breaks1&lt;-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
+  MoranColours&lt;- rev(brewer.pal(8, &quot;RdBu&quot;))
+  tm_local_moran &lt;- I_ward_localfun(londonpointsyear)
+  
+  tmap &lt;- tm_shape(tm_local_moran) +
+    tm_polygons(&quot;charge_count_Iz&quot;,
+        style=&quot;fixed&quot;,
+        breaks=breaks1,
+        palette=MoranColours,
+        midpoint=NA)+
+    tm_legend(show=FALSE)+
+    tm_layout(frame=FALSE)+
+    tm_credits(number, position=c(0,0.85), size=1)
+  return(tmap)
+}</code></pre>
+<pre class="r"><code>tmap_moranlegendfun &lt;- function(londonpointsyear){
+  breaks1&lt;-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
+  MoranColours&lt;- rev(brewer.pal(8, &quot;RdBu&quot;))
+  tm_local_moran &lt;- I_ward_localfun(londonpointsyear)
+  legend &lt;- tm_shape(tm_local_moran) +
+    tm_polygons(&quot;charge_count_Iz&quot;,
+                breaks=breaks1,
+                palette=MoranColours,
+                title=&quot;Local Moran&#39;s I, Charge Points in London&quot;) +
+    tm_scale_bar(position=c(0.2,0.04), text.size=0.6)+
+    tm_compass(north=0, position=c(0.65,0.2))+
+   
+    tm_layout(title = &quot;Charge Points Local Moran&#39;s I&quot;, 
+              legend.title.size=1,
+              legend.text.size = 0.6,
+              legend.only = TRUE, 
+              legend.position=c(0.2,0.25),asp=0.1)
+  
+  return(legend)
+}</code></pre>
+<pre class="r"><code>tm_local_moran14 &lt;- tmap_local_moranfun(londonpoints2014, &quot;a)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>tm_local_moran17 &lt;- tmap_local_moranfun(londonpoints2017, &quot;b)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>tm_local_moran20 &lt;- tmap_local_moranfun(londonpoints2020, &quot;c)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>moran_legend &lt;- tmap_moranlegendfun(londonpoints2020)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>local_moran &lt;- tmap_arrange(tm_local_moran14, 
+                            tm_local_moran17, 
+                            tm_local_moran20, 
+                            moran_legend, ncol=2)
+local_moran</code></pre>
+<pre><code>## Variable(s) &quot;charge_count_Iz&quot; contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-52-1.png" width="672" /></p>
+<pre class="r"><code>tmap_save(local_moran, &quot;Local Moran&#39;s I, Charge Points in London.png&quot;)</code></pre>
+<pre><code>## Variable(s) &quot;charge_count_Iz&quot; contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
+<pre><code>## Map saved to /Users/huoanni/OneDrive - University College London/GIS/temporal charge points/Local Moran&#39;s I, Charge Points in London.png</code></pre>
+<pre><code>## Resolution: 2100 by 2100 pixels</code></pre>
+<pre><code>## Size: 7 by 7 inches (300 dpi)</code></pre>
+</div>
+<div id="function-to-run-gi" class="section level3">
+<h3><span class="header-section-number">0.7.8</span> function to run Gi*</h3>
+<pre class="r"><code>Gi_ward_local_densityfun &lt;- function(londonpointsyear){
+  ward_lw &lt;- ward_lwfun(londonpointsyear)
+  
+  Gi_ward_local_density &lt;- londonpointsyear %&gt;% 
+    pointsjoinedfun(.) %&gt;% 
+    pull(density) %&gt;%
+    as.vector()%&gt;%
+    localG(., ward_lw)
+  
+  density_Gi &lt;- londonpointsyear %&gt;% 
+    pointsjoinedfun(.) %&gt;% 
+    mutate(density_G = as.numeric(Gi_ward_local_density))
+  
+  return(density_Gi)
+}</code></pre>
+</div>
+<div id="function-to-run-tmap-for-gi" class="section level3">
+<h3><span class="header-section-number">0.7.9</span> function to run tmap for Gi*</h3>
+<pre class="r"><code>tmap_Gifun &lt;- function(londonpointsyear, number){
+  breaks1&lt;-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
+  GIColours&lt;- rev(brewer.pal(8, &quot;RdBu&quot;))
+  density_Gi &lt;- Gi_ward_local_densityfun(londonpointsyear)
+  
+  tmap &lt;- tm_shape(density_Gi) +
+    tm_polygons(&quot;density_G&quot;,
+                breaks=breaks1,
+                palette=GIColours,
+                title=&quot;Gi*, Charge Points in London&quot;) +
+    tm_legend(show=FALSE)+
+    tm_layout(frame=FALSE)+
+    tm_credits(number, position=c(0,0.85), size=1)
+  
+  return(tmap)
+}</code></pre>
+<pre class="r"><code>G1 &lt;- tmap_Gifun(londonpoints2014, &quot;a)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>G2 &lt;- tmap_Gifun(londonpoints2017, &quot;b)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>G3 &lt;- tmap_Gifun(londonpoints2020, &quot;c)&quot;)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>tmap_Gilegendfun &lt;- function(londonpointsyear){
+  breaks1&lt;-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
+  GIColours&lt;- rev(brewer.pal(8, &quot;RdBu&quot;))
+  density_Gi &lt;- Gi_ward_local_densityfun(londonpointsyear)
+  legend &lt;- tm_shape(density_Gi) +
+    tm_polygons(&quot;density_G&quot;,
+                breaks=breaks1,
+                palette=GIColours,
+                title=&quot;Gi*, Charge Points in London&quot;) +
+    tm_scale_bar(position=c(0.2,0.04), text.size=0.6)+
+    tm_compass(north=0, position=c(0.65,0.2))+
+   
+    tm_layout(title = &quot;Charge Points Gi* Density&quot;, 
+              legend.title.size=1,
+              legend.text.size = 0.6,
+              legend.only = TRUE, 
+              legend.position=c(0.2,0.25),asp=0.1)
+  
+  return(legend)
+}</code></pre>
+<pre class="r"><code>Gi_legend &lt;- tmap_Gilegendfun(londonpoints2020)</code></pre>
+<pre><code>## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)
+## `summarise()` ungrouping output (override with `.groups` argument)</code></pre>
+<pre class="r"><code>Gi &lt;- tmap_arrange(G1, G2, G3, Gi_legend, ncol=2)
+Gi</code></pre>
+<pre><code>## Variable(s) &quot;density_G&quot; contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
+<pre><code>## Variable(s) &quot;density_G&quot; contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.
+## Variable(s) &quot;density_G&quot; contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.
+## Variable(s) &quot;density_G&quot; contains positive and negative values, so midpoint is set to 0. Set midpoint = NA to show the full spectrum of the color palette.</code></pre>
+<p><img src="temporal_charge_points_files/figure-html/unnamed-chunk-58-1.png" width="672" /></p>
+</div>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open')
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = false;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
