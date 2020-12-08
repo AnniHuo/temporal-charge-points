@@ -1,0 +1,318 @@
+---
+title: "charge_points"
+output:
+  html_document:
+    theme: yeti
+    smart: true
+    highlight: textmate
+    toc: true
+    number_sections: true
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+---
+
+## Load package
+
+```{r}
+library(spatstat)
+library(here)
+library(sp)
+library(rgeos)
+library(maptools)
+library(GISTools)
+library(tmap)
+library(sf)
+library(geojson)
+library(geojsonio)
+library(tmaptools)
+library(tidyverse)
+library(spdep)
+
+```
+
+## load data
+
+```{r}
+charge <- read_csv("national-charge-point-registry.csv")
+summary(charge$chargeDeviceStatus)
+```
+```{r}
+chargepoints <- charge [charge$chargeDeviceStatus=="In service" & !is.na(charge$latitude) & !is.na(charge$longitude),] 
+chargepoints <- select(chargepoints, c(3,4,5))
+
+chargepoints <- st_as_sf(chargepoints, coords = c("longitude", "latitude"),
+                         crs = 4326) 
+
+chargepoints <- st_transform(chargepoints, 27700) %>%
+  distinct()
+```
+
+```{r}
+londonwards <- st_read("ESRI/London_Ward_CityMerged.shp") %>% 
+  st_transform(., 27700)
+```
+```{r}
+lad <- st_read("london_lad_2020/london_lad_2020.shp")
+```
+
+## manipulate data
+
+```{r}
+charge_london <- st_intersects(lad, chargepoints)
+charge_points <- chargepoints[unlist(charge_london),]
+```
+```{r}
+tmap_mode("plot")
+tm_shape(lad) +
+  tm_fill() +
+  tm_shape(charge_points) +
+  tm_dots(col = "purple", size = .01)
+```
+```{r}
+# get coordinates from sf object
+charge_points_coords <- matrix(unlist(charge_points$geometry),ncol=2,byrow=T)
+# inspect
+head(charge_points_coords)
+```
+
+## plot density hex
+
+```{r}
+library(plotly)
+library(RColorBrewer)
+```
+```{r}
+# see trend in massive datasets
+df <- charge_points_coords %>% 
+  as.data.frame() %>% 
+  na.omit()
+
+ggplot(df, aes(x=V1, y=V2)) +
+  geom_hex(bins=50, na.rm=TRUE) +
+  labs(fill = "charge point count", title = "Charge Points in London")+
+  scale_fill_continuous(high=brewer.pal(7, "Purples")[7], low=brewer.pal(7, "Purples")[1])+
+  xlab(NULL)+
+  ylab(NULL)+
+  scale_x_discrete()+
+  scale_y_discrete()+
+  theme_bw()
+```
+
+## Ripley's K
+
+```{r}
+# transform sf to sp
+lad_sp <- as(lad,'Spatial')
+# get the window of observation using maptools package
+window <- as.owin.SpatialPolygons(lad_sp)
+# inspect
+window
+
+```
+
+```{r}
+# create ppp object
+charge_ppp <- ppp(x=charge_points_coords[,1],y=charge_points_coords[,2],window=window,check=T)
+
+# inspect
+plot(charge_ppp)
+```
+```{r}
+# check for duplicates
+any(duplicated(charge_ppp))
+
+# count the number of duplicated points
+sum(multiplicity(charge_ppp) > 1)
+
+```
+```{r}
+# get the average distance to the first, second, ..., the hundredth, nearest neighbour
+charge_ann <- apply(nndist(charge_ppp, k=1:100),2,FUN=mean)
+# plot the results
+plot(charge_ann ~ seq(1:100))
+
+```
+```{r}
+# calculate Ripley's K for charge locations, maximum radius of 4 kilometers
+plot(Kest(charge_ppp,correction='border',rmax=4000))
+```
+
+## density analysis
+
+```{r}
+# create and plot a completely spatially random point pattern of the same size as charge points data
+plot(rpoispp(3817))
+
+```
+```{r}
+# chi-square between observed pattern and Poisson sampled points
+quadrat.test(charge_ppp,nx=15,ny=15)
+```
+```{r}
+# kernel density estimation with a 1000 metre bandwidth
+plot(density.ppp(charge_ppp,sigma=1000))
+```
+```{r}
+library(fpc)
+```
+
+```{r}
+# Run dbscan's DB-Scan function with eps and minPts set as follows
+chargepoints_dbscan <- fpc::dbscan(charge_points_coords, eps = 3000, MinPts = 200)
+
+# Plot our clusters and points - note the plotting code for the dbscan plot is different to that of fpc
+plot(chargepoints_dbscan, 
+     charge_points, 
+     main = "DBSCAN for charge points")
+plot(lad$geometry, add=T)
+```
+```{r}
+library(dbscan)
+charge_points_coords%>%
+  dbscan::kNNdistplot(.,k=4)
+```
+```{r}
+charge_points_ward <- charge_points[londonwards,]
+points_sf_joined <- londonwards%>%
+  st_join(charge_points)%>%
+  add_count(NAME)%>%
+  janitor::clean_names()%>%
+  #calculate area
+  mutate(area=st_area(.))%>%
+  #then density of the points per ward
+  mutate(density=n/area)%>%
+  #select density and some other variables 
+  dplyr::select(density, name, gss_code, n)
+
+# same quick choropleth map
+points_sf_joined<- points_sf_joined %>%                    
+  group_by(gss_code) %>%         
+  summarise(density = first(density),
+          wardname= first(name),
+          chargepointcount= first(n))
+
+# tmap_mode("view")
+tmap_mode("plot")
+
+tm_shape(points_sf_joined) +
+    tm_polygons("density",
+        style="jenks",
+        palette="PuOr",
+        midpoint=NA,
+        popup.vars=c("wardname", "density"),
+        title="Charge Point Density")
+
+```
+
+## spatial autocorrelation
+
+```{r}
+# library(spdep)
+#First calculate the centroids of all Wards in London
+coordsW <- points_sf_joined%>%
+  st_centroid()%>%
+  st_geometry()
+  
+plot(coordsW,axes=TRUE)
+
+```
+```{r}
+#create a neighbours list
+Ward_nb <- points_sf_joined %>%
+  poly2nb(., queen=T)
+#plot them
+plot(Ward_nb, st_geometry(coordsW), col="red")
+#add a map underneath
+plot(points_sf_joined$geometry, add=T)
+
+```
+```{r}
+#create a spatial weights object from these weights
+Ward.lw <- Ward_nb %>%
+  nb2listw(., style="C")
+head(Ward.lw$neighbours)
+
+```
+```{r}
+I_Ward_Global_Density <- points_sf_joined %>%
+  pull(density) %>%
+  as.vector()%>% # Converts a distributed matrix into a non-distributed vector
+  moran.test(., Ward.lw) # density <-> spatial (similar or not)
+I_Ward_Global_Density
+```
+```{r}
+# Geary's C tell whether similar values or dissimilar values are clustering
+C_Ward_Global_Density <- 
+  points_sf_joined %>%
+  pull(density) %>%
+  as.vector()%>%
+  geary.test(., Ward.lw)
+C_Ward_Global_Density
+```
+```{r}
+# Getis Ord General G
+G_Ward_Global_Density <- 
+  points_sf_joined %>%
+  pull(density) %>%
+  as.vector()%>%
+  globalG.test(., Ward.lw)
+G_Ward_Global_Density
+```
+```{r}
+#use the localmoran function to generate I for each ward in the city
+I_Ward_Local_count <- points_sf_joined %>%
+  pull(chargepointcount) %>%
+  as.vector()%>%
+  localmoran(., Ward.lw)%>%
+  as_tibble()
+I_Ward_Local_Density <- points_sf_joined %>%
+  pull(density) %>%
+  as.vector()%>%
+  localmoran(., Ward.lw)%>%
+  as_tibble()
+#what does the output (the localMoran object) look like?
+slice_head(I_Ward_Local_Density, n=5)
+```
+```{r}
+points_sf_joined <- points_sf_joined %>%
+  mutate(charge_count_I = as.numeric(I_Ward_Local_count$Ii))%>%
+  mutate(charge_count_Iz =as.numeric(I_Ward_Local_count$Z.Ii))%>%
+  mutate(density_I =as.numeric(I_Ward_Local_Density$Ii))%>%
+  mutate(density_Iz =as.numeric(I_Ward_Local_Density$Z.Ii))
+```
+
+```{r}
+breaks1<-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
+MoranColours<- rev(brewer.pal(8, "RdBu"))
+
+tm_shape(points_sf_joined) +
+    tm_polygons("charge_count_Iz",
+        style="fixed",
+        breaks=breaks1,
+        palette=MoranColours,
+        midpoint=NA,
+        title="Local Moran's I, Charge Points in London")
+```
+```{r}
+Gi_LWard_Local_Density <- points_sf_joined %>%
+  pull(density) %>%
+  as.vector()%>%
+  localG(., Ward.lw)
+head(Gi_LWard_Local_Density)
+```
+```{r}
+points_sf_joined <- points_sf_joined %>%
+  mutate(density_G = as.numeric(Gi_LWard_Local_Density))
+
+GIColours<- rev(brewer.pal(8, "RdBu"))
+#now plot on an interactive map
+tm_shape(points_sf_joined) +
+    tm_polygons("density_G",
+        style="fixed",
+        breaks=breaks1,
+        palette=GIColours,
+        midpoint=NA,
+        title="Gi*, Charge Points in London")
+```
+
