@@ -1,0 +1,9 @@
+name: "CASA0005"
+output_dir: "."
+navbar:
+  title: "Temporal Charge Points in London"
+  left:
+    - text: "Home"
+      href: index.html
+    - text: "About"
+      href: temporal_charge_points.html

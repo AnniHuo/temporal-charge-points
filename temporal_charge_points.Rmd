@@ -1,5 +1,5 @@
 ---
-title: "charge_points"
+title: "temoral_charge_points"
 output:
   html_document:
     theme: yeti
@@ -12,7 +12,11 @@ output:
       smooth_scroll: true
 ---
 
-## Load package
+
+## Load packages
+
+
+### Load basic package
 
 ```{r}
 library(spatstat)
@@ -31,81 +35,223 @@ library(spdep)
 
 ```
 
+### load plot library
+
+```{r}
+library(ggplot2)
+library(plotly)
+library(RColorBrewer)
+```
+
+
+
+
 ## load data
+
+
+### load .csv file
+
 
 ```{r}
 charge <- read_csv("national-charge-point-registry.csv")
 summary(charge$chargeDeviceStatus)
 ```
-```{r}
-chargepoints <- charge [charge$chargeDeviceStatus=="In service" & !is.na(charge$latitude) & !is.na(charge$longitude),] 
-chargepoints <- select(chargepoints, c(3,4,5))
 
-chargepoints <- st_as_sf(chargepoints, coords = c("longitude", "latitude"),
-                         crs = 4326) 
 
-chargepoints <- st_transform(chargepoints, 27700) %>%
-  distinct()
-```
+### load shapefile
 
 ```{r}
 londonwards <- st_read("ESRI/London_Ward_CityMerged.shp") %>% 
   st_transform(., 27700)
 ```
 ```{r}
-lad <- st_read("london_lad_2020/london_lad_2020.shp")
+london_outline <- londonwards %>%
+  summarise(area = sum(HECTARES))
 ```
 
-## manipulate data
+
+
+
+## filter data
+
+
 
 ```{r}
-charge_london <- st_intersects(lad, chargepoints)
-charge_points <- chargepoints[unlist(charge_london),]
+chargepoints <- charge [charge$chargeDeviceStatus=="In service" & !is.na(charge$latitude) & !is.na(charge$longitude),] 
 ```
+
+
+### function to filter year (2014, 2017, 2020 register)
+
+```{r}
+filterfun <- function(end){
+  enddate <- end
+  
+  filterpoints <- chargepoints %>% 
+    filter(chargepoints$dateCreated<=enddate)
+  return(filterpoints)
+}
+
+```
+
+
+### function to transform projection & crop to London
+
+```{r}
+londonPfun <- function(filteredpoints){
+  transpoints <- filteredpoints %>% 
+    select(., c(3,4,5)) %>% 
+    st_as_sf(., coords = c("longitude", "latitude"),crs = 4326) %>% 
+    st_transform(., 27700) %>%
+    distinct()
+  
+  charge_london <- st_intersects(london_outline, transpoints)
+  londonpoints <- transpoints[unlist(charge_london),]
+  return(londonpoints)
+}
+```
+
+
+### instance object
+
+```{r}
+filterpoints14 <- filterfun("2014-12-31")
+londonpoints2014 <- londonPfun(filterpoints14)
+
+filterpoints17 <- filterfun("2017-12-31")
+londonpoints2017 <- londonPfun(filterpoints17)
+
+filterpoints20 <- filterfun("2020-12-31")
+londonpoints2020 <- londonPfun(filterpoints20)
+```
+
+
+### plot data
+
 ```{r}
 tmap_mode("plot")
-tm_shape(lad) +
+
+tm1 <- tm_shape(london_outline) +
   tm_fill() +
-  tm_shape(charge_points) +
-  tm_dots(col = "purple", size = .01)
+  tm_shape(londonpoints2014) +
+  tm_dots(col = "red", size = .01)+
+  tm_layout(frame=FALSE)+
+  tm_credits("(a)", position=c(0,0.85), size=1)
+
+tm2 <- tm_shape(london_outline) +
+  tm_fill() +
+  tm_shape(londonpoints2017) +
+  tm_dots(col = "red", size = .01)+
+  tm_layout(frame=FALSE)+
+  tm_credits("(b)", position=c(0,0.85), size=1)
+
+tm3 <- tm_shape(london_outline) +
+  tm_fill() +
+  tm_shape(londonpoints2020) +
+  tm_dots(col = "red", size = .01)+
+  tm_layout(frame=FALSE)+
+  tm_credits("(c)", position=c(0,0.85), size=1)
+
+
+t <- tmap_arrange(tm1, tm2, tm3, ncol=3)
+t
+
 ```
 ```{r}
-# get coordinates from sf object
-charge_points_coords <- matrix(unlist(charge_points$geometry),ncol=2,byrow=T)
-# inspect
-head(charge_points_coords)
+tmap_save(t, 'london charge points.png')
 ```
+
+
+
 
 ## plot density hex
 
+
+### get coordinates from sf object
+
 ```{r}
-library(plotly)
-library(RColorBrewer)
+# get coordinates from sf object -> ggplot2 format
+coordsfun <- function(londonpoints, year){
+  charge_points_coords <- matrix(unlist(londonpoints$geometry),ncol=2,byrow=T) %>%
+    as.data.frame() %>% 
+    na.omit() %>% 
+    mutate(year=year)
+  return(charge_points_coords)
+}
+
+# inspect
+charge_points_coords14 <- coordsfun(londonpoints2014, "2014")
+head(charge_points_coords14)
+```
+
+
+### see trend in massive datasets
+
+```{r}
+charge_points_coords14 <- coordsfun(londonpoints2014, "2014")
+charge_points_coords17 <- coordsfun(londonpoints2017, "2017")
+charge_points_coords20 <- coordsfun(londonpoints2020, "2020")
+
+charge_points_ggplot <- rbind(charge_points_coords14, 
+                              charge_points_coords17, 
+                              charge_points_coords20)
+
+```
+
+```{r}
+class(london_outline)
+# methods(class = "sf")
+df <- as.data.frame(st_coordinates(london_outline))
+class(df)
 ```
 ```{r}
-# see trend in massive datasets
-df <- charge_points_coords %>% 
-  as.data.frame() %>% 
-  na.omit()
+ggplot()+
+  geom_polygon(data=df, aes(X, Y, group=L1))+
+  coord_quickmap()
+```
 
-ggplot(df, aes(x=V1, y=V2)) +
+
+```{r}
+
+ggplot(charge_points_ggplot, aes(x=V1, y=V2, group=year)) +
   geom_hex(bins=50, na.rm=TRUE) +
-  labs(fill = "charge point count", title = "Charge Points in London")+
-  scale_fill_continuous(high=brewer.pal(7, "Purples")[7], low=brewer.pal(7, "Purples")[1])+
+  geom_polygon(data=df, fill=NA, 
+               color="black", size=.2,
+               aes(X, Y, group=L1)) +
+  labs(fill = "charge point count \n", 
+       title = "Charge Points in London \n") +
+  scale_fill_continuous(high=brewer.pal(7, "Reds")[7], 
+                        low=brewer.pal(7, "Reds")[1]) +
   xlab(NULL)+
   ylab(NULL)+
   scale_x_discrete()+
   scale_y_discrete()+
-  theme_bw()
+  scale_colour_gradient()+
+  facet_wrap(~ year, ncol = 2)+
+  theme_minimal()+
+  theme(strip.text = element_text(size=11), 
+        legend.key.size = unit(11, "pt"),
+        legend.text = element_text(size=8), 
+        legend.title = element_text(size=11))+
+  coord_quickmap()
+
 ```
+```{r}
+ggsave("charge points facet wrap.jpg")
+```
+
+
+
 
 ## Ripley's K
 
+
+
 ```{r}
 # transform sf to sp
-lad_sp <- as(lad,'Spatial')
+london_sp <- as(londonwards,'Spatial')
 # get the window of observation using maptools package
-window <- as.owin.SpatialPolygons(lad_sp)
+window <- as.owin.SpatialPolygons(london_sp)
 # inspect
 window
 
@@ -113,7 +259,9 @@ window
 
 ```{r}
 # create ppp object
-charge_ppp <- ppp(x=charge_points_coords[,1],y=charge_points_coords[,2],window=window,check=T)
+charge_ppp <- ppp(x=charge_points_coords20[,1],
+                  y=charge_points_coords20[,2],
+                  window=window,check=T)
 
 # inspect
 plot(charge_ppp)
@@ -135,10 +283,14 @@ plot(charge_ann ~ seq(1:100))
 ```
 ```{r}
 # calculate Ripley's K for charge locations, maximum radius of 4 kilometers
-plot(Kest(charge_ppp,correction='border',rmax=4000))
+plot(Kest(charge_ppp,correction='border',rmax=2000))
 ```
 
+
+
 ## density analysis
+
+
 
 ```{r}
 # create and plot a completely spatially random point pattern of the same size as charge points data
@@ -149,170 +301,490 @@ plot(rpoispp(3817))
 # chi-square between observed pattern and Poisson sampled points
 quadrat.test(charge_ppp,nx=15,ny=15)
 ```
+
+
+### kernel density analysis
+
 ```{r}
 # kernel density estimation with a 1000 metre bandwidth
 plot(density.ppp(charge_ppp,sigma=1000))
 ```
+
+### dbscan clustering analysis
+
 ```{r}
 library(fpc)
 ```
 
 ```{r}
 # Run dbscan's DB-Scan function with eps and minPts set as follows
-chargepoints_dbscan <- fpc::dbscan(charge_points_coords, eps = 3000, MinPts = 200)
+chargepoints_dbscan <- fpc::dbscan(charge_points_coords20[1:2], eps = 3000, MinPts = 200)
 
 # Plot our clusters and points - note the plotting code for the dbscan plot is different to that of fpc
 plot(chargepoints_dbscan, 
-     charge_points, 
+     londonpoints2020, 
      main = "DBSCAN for charge points")
-plot(lad$geometry, add=T)
+plot(london_outline$geometry, add=T)
 ```
+
+### k nearest neighbor distance
+
 ```{r}
 library(dbscan)
-charge_points_coords%>%
+charge_points_coords20[1:2]%>%
   dbscan::kNNdistplot(.,k=4)
 ```
+
+
+### function to map charge point density by wards
+
+
 ```{r}
-charge_points_ward <- charge_points[londonwards,]
-points_sf_joined <- londonwards%>%
-  st_join(charge_points)%>%
-  add_count(NAME)%>%
-  janitor::clean_names()%>%
-  #calculate area
-  mutate(area=st_area(.))%>%
-  #then density of the points per ward
-  mutate(density=n/area)%>%
-  #select density and some other variables 
-  dplyr::select(density, name, gss_code, n)
+pointsjoinedfun <- function(londonpointsyear){
+  londonpointsyear <- londonpointsyear
+  charge_points_ward <- londonpointsyear[londonwards,]
+  
+  points_wards <- londonwards%>%
+    st_join(charge_points_ward)%>%
+    add_count(NAME)%>%
+    janitor::clean_names()%>%
+    #then density of the points per ward
+    mutate(density=(n/hectares)*1000) %>% 
+    mutate(id=1) %>% 
+    mutate(sumpoints=aggregate(n~id,.,FUN=sum)) %>% 
+    mutate(percentage=((n/sumpoints[1, 2]))*100) %>% 
+    #select density and some other variables 
+    dplyr::select(density, percentage, name, gss_code, n) %>% 
+    distinct(., gss_code, .keep_all = TRUE)
+  
+  # same quick choropleth map
+  points_wards <- points_wards %>%                    
+    group_by(gss_code) %>%         
+    summarise(density=first(density),
+              percentage=first(percentage),
+              wardname=first(name),
+              chargepointcount= first(n))
+  return(points_wards)
+}
+```
+```{r}
+# test
+percent_ward14 <- pointsjoinedfun(londonpoints2014)
+head(percent_ward14)
+```
 
-# same quick choropleth map
-points_sf_joined<- points_sf_joined %>%                    
-  group_by(gss_code) %>%         
-  summarise(density = first(density),
-          wardname= first(name),
-          chargepointcount= first(n))
 
-# tmap_mode("view")
-tmap_mode("plot")
+```{r}
+densityfun <- function(londonpointsyear, number){
+  points_wards <- pointsjoinedfun(londonpointsyear)
 
-tm_shape(points_sf_joined) +
+  breaks = c(0, 20, 30, 40, 50, 60, 200, 400, +Inf) 
+  tm <- tm_shape(points_wards) +
     tm_polygons("density",
-        style="jenks",
-        palette="PuOr",
-        midpoint=NA,
-        popup.vars=c("wardname", "density"),
-        title="Charge Point Density")
+                breaks=breaks,
+                palette=RColorBrewer::brewer.pal(8, "YlOrRd"),
+                midpoint=NA) +
+    tm_legend(show=FALSE)+
+    tm_layout(frame=FALSE)+
+    tm_credits(number, position=c(0,0.85), size=1)
+  
+  return(tm)
+}
 
 ```
+```{r}
+legendfun <- function(londonpointsyear){
+  points_wards <- pointsjoinedfun(londonpointsyear)
+  
+  breaks = c(0, 20, 30, 40, 50, 60, 200, 400, +Inf) 
+  legend <- tm_shape(points_wards) +
+    tm_polygons("density",
+                breaks=breaks,
+                palette=RColorBrewer::brewer.pal(8, "YlOrRd"), 
+                title="Density of Charge Points in London \n(per thousand hectare)") +
+    tm_scale_bar(position=c(0.2,0.04), text.size=0.6)+
+    tm_compass(north=0, position=c(0.65,0.2))+
+   
+    tm_layout(title = "Charge Points Density Trend", 
+              legend.title.size=1,
+              legend.text.size = 0.6,
+              legend.only = TRUE, 
+              legend.position=c(0.2,0.25),asp=0.1)
+  
+  return(legend)
+}
+```
+
+
+### tmap - charge point density by ward
+
+```{r}
+
+tm1 <- densityfun(londonpoints2014, "a)")
+tm2 <- densityfun(londonpoints2017, "b)")
+tm3 <- densityfun(londonpoints2020, "c)")
+
+legend <- legendfun(londonpoints2020)
+
+
+t_density <- tmap_arrange(tm1, tm2, tm3, legend, ncol=2)
+t_density
+```
+
+```{r}
+tmap_save(t_density, 'london charge points density.png')
+```
+
+
+### function to map charge point percentage by wards
+
+```{r}
+percentfun <- function(londonpointsyear, number){
+  points_wards <- pointsjoinedfun(londonpointsyear)
+
+  breaks = c(0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 0.7, +Inf) 
+  tm <- tm_shape(points_wards) +
+    tm_polygons("percentage",
+                breaks=breaks,
+                palette=RColorBrewer::brewer.pal(8, "YlOrRd"),
+                midpoint=NA) +
+    tm_legend(show=FALSE)+
+    tm_layout(frame=FALSE)+
+    tm_credits(number, position=c(0,0.85), size=1)
+  
+  return(tm)
+}
+
+```
+```{r}
+legendpfun <- function(londonpointsyear){
+  points_wards <- pointsjoinedfun(londonpointsyear)
+  
+  breaks = c(0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.5, 0.7, +Inf)  
+  legend <- tm_shape(points_wards) +
+    tm_polygons("percentage",
+                breaks=breaks,
+                palette=RColorBrewer::brewer.pal(8, "YlOrRd"), 
+                title="Percentage of Charge Points in London \n(by wards)") +
+    tm_scale_bar(position=c(0.2,0.04), text.size=0.6)+
+    tm_compass(north=0, position=c(0.65,0.2))+
+   
+    tm_layout(title = "Charge Points Distribution Trend", 
+              legend.title.size=1,
+              legend.text.size = 0.6,
+              legend.only = TRUE, 
+              legend.position=c(0.2,0.25),asp=0.1)
+  
+  return(legend)
+}
+```
+
+
+### tmap - charge point density by ward
+
+```{r}
+
+p1 <- percentfun(londonpoints2014, "a)")
+p2 <- percentfun(londonpoints2017, "b)")
+p3 <- percentfun(londonpoints2020, "c)")
+
+legendp <- legendpfun(londonpoints2020)
+
+
+percentage <- tmap_arrange(p1, p2, p3, legendp, ncol=2)
+percentage
+```
+```{r}
+tmap_save(percentage, 'Charge Points Distribution Trend.png')
+```
+
+
+
 
 ## spatial autocorrelation
 
+
+### function to calculate the centroids
+
 ```{r}
 # library(spdep)
-#First calculate the centroids of all Wards in London
-coordsW <- points_sf_joined%>%
-  st_centroid()%>%
-  st_geometry()
-  
-plot(coordsW,axes=TRUE)
+# First calculate the centroids of all Wards in London
+
+coordsWfun <- function(londonpointsyear){
+  points_wards <- pointsjoinedfun(londonpointsyear)
+  coordsW <- points_wards %>% 
+    st_centroid() %>%
+    st_geometry()
+}
 
 ```
+```{r}
+# test
+coordsW <- coordsWfun(londonpoints2020)
+plot(coordsW,axes=TRUE)
+```
+
+
+### function to create a neighbours list
+
 ```{r}
 #create a neighbours list
-Ward_nb <- points_sf_joined %>%
-  poly2nb(., queen=T)
-#plot them
-plot(Ward_nb, st_geometry(coordsW), col="red")
-#add a map underneath
-plot(points_sf_joined$geometry, add=T)
+ward_nbfun <- function(londonpointsyear){
+  points_wards <- pointsjoinedfun(londonpointsyear)
+  ward_nb <- points_wards %>% 
+    poly2nb(., queen=T)
+  return(ward_nb)
+}
 
 ```
+```{r}
+# test
+ward_nb20 <- ward_nbfun(londonpoints2020)
+plot(ward_nb20, st_geometry(coordsW), col="red")
+# add a map underneath
+points_wards <- pointsjoinedfun(londonpoints2020) 
+plot(points_wards$geometry, add=T)
+```
+
+### function to create spatial weights
+
 ```{r}
 #create a spatial weights object from these weights
-Ward.lw <- Ward_nb %>%
-  nb2listw(., style="C")
-head(Ward.lw$neighbours)
-
+ward_lwfun <- function(londonpointsyear){
+  ward_lw <- ward_nbfun(londonpointsyear) %>% 
+    nb2listw(., style="C")
+  return(ward_lw)
+}
 ```
 ```{r}
-I_Ward_Global_Density <- points_sf_joined %>%
-  pull(density) %>%
-  as.vector()%>% # Converts a distributed matrix into a non-distributed vector
-  moran.test(., Ward.lw) # density <-> spatial (similar or not)
-I_Ward_Global_Density
-```
-```{r}
-# Geary's C tell whether similar values or dissimilar values are clustering
-C_Ward_Global_Density <- 
-  points_sf_joined %>%
-  pull(density) %>%
-  as.vector()%>%
-  geary.test(., Ward.lw)
-C_Ward_Global_Density
-```
-```{r}
-# Getis Ord General G
-G_Ward_Global_Density <- 
-  points_sf_joined %>%
-  pull(density) %>%
-  as.vector()%>%
-  globalG.test(., Ward.lw)
-G_Ward_Global_Density
-```
-```{r}
-#use the localmoran function to generate I for each ward in the city
-I_Ward_Local_count <- points_sf_joined %>%
-  pull(chargepointcount) %>%
-  as.vector()%>%
-  localmoran(., Ward.lw)%>%
-  as_tibble()
-I_Ward_Local_Density <- points_sf_joined %>%
-  pull(density) %>%
-  as.vector()%>%
-  localmoran(., Ward.lw)%>%
-  as_tibble()
-#what does the output (the localMoran object) look like?
-slice_head(I_Ward_Local_Density, n=5)
-```
-```{r}
-points_sf_joined <- points_sf_joined %>%
-  mutate(charge_count_I = as.numeric(I_Ward_Local_count$Ii))%>%
-  mutate(charge_count_Iz =as.numeric(I_Ward_Local_count$Z.Ii))%>%
-  mutate(density_I =as.numeric(I_Ward_Local_Density$Ii))%>%
-  mutate(density_Iz =as.numeric(I_Ward_Local_Density$Z.Ii))
+# test
+ward_lw20 <- ward_lwfun(londonpoints2020)
+head(ward_lw20$neighbours)
 ```
 
-```{r}
-breaks1<-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
-MoranColours<- rev(brewer.pal(8, "RdBu"))
 
-tm_shape(points_sf_joined) +
+### function to run Global Moran's I
+
+```{r}
+I_ward_globalfun <- function(londonpointsyear){
+  ward_lw <- ward_lwfun(londonpointsyear)
+  
+  I_ward_global <- londonpointsyear %>% 
+    pointsjoinedfun(.) %>% 
+    pull(density) %>%
+    as.vector()%>% # Converts a distributed matrix into a non-distributed vector
+    moran.test(., ward_lw) # density <-> spatial (similar or not)
+  return(I_ward_global)
+}
+
+```
+
+
+### Global Moran's I for 2014, 2017, 2020
+
+```{r}
+I_ward_global14 <- I_ward_globalfun(londonpoints2014)
+I_ward_global17 <- I_ward_globalfun(londonpoints2017)
+I_ward_global20 <- I_ward_globalfun(londonpoints2020)
+I_ward_global14
+I_ward_global17
+I_ward_global20
+```
+
+
+### function to run Local Moran's I
+
+```{r}
+ward_lw20 <- ward_lwfun(londonpoints2020)
+  
+  I_ward_local_count <- londonpoints2020 %>% 
+    pointsjoinedfun(.) %>% 
+    pull(chargepointcount) %>%
+    as.vector()%>% 
+    localmoran(., ward_lw20) %>% 
+    as_tibble()
+  I_ward_local_density <- londonpoints2020 %>% 
+    pointsjoinedfun(.) %>% 
+    pull(density) %>%
+    as.vector()%>% 
+    localmoran(., ward_lw20) %>% 
+    as_tibble()
+
+slice_head(I_ward_local_count, n=5)
+slice_head(I_ward_local_density, n=5)
+```
+
+
+```{r}
+# use the local moran function to generate I for each ward in the city
+
+I_ward_localfun <- function(londonpointsyear){
+  ward_lw <- ward_lwfun(londonpointsyear)
+  
+  I_ward_local_count <- londonpointsyear %>% 
+    pointsjoinedfun(.) %>% 
+    pull(chargepointcount) %>%
+    as.vector()%>% 
+    localmoran(., ward_lw) %>% 
+    as_tibble()
+  I_ward_local_density <- londonpointsyear %>% 
+    pointsjoinedfun(.) %>% 
+    pull(density) %>%
+    as.vector()%>% 
+    localmoran(., ward_lw) %>% 
+    as_tibble()
+  
+  tm_local_moran <- londonpointsyear %>% 
+    pointsjoinedfun(.) %>%
+    mutate(charge_count_I = as.numeric(I_ward_local_count$Ii))%>%
+    mutate(charge_count_Iz =as.numeric(I_ward_local_count$Z.Ii))%>%
+    mutate(density_I =as.numeric(I_ward_local_density$Ii))%>%
+    mutate(density_Iz =as.numeric(I_ward_local_density$Z.Ii))
+  
+  return(tm_local_moran)
+}
+
+```
+
+
+### function to run tmap for Local Moran's I
+
+```{r}
+tmap_local_moranfun <- function(londonpointsyear, number){
+  breaks1<-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
+  MoranColours<- rev(brewer.pal(8, "RdBu"))
+  tm_local_moran <- I_ward_localfun(londonpointsyear)
+  
+  tmap <- tm_shape(tm_local_moran) +
     tm_polygons("charge_count_Iz",
         style="fixed",
         breaks=breaks1,
         palette=MoranColours,
-        midpoint=NA,
-        title="Local Moran's I, Charge Points in London")
+        midpoint=NA)+
+    tm_legend(show=FALSE)+
+    tm_layout(frame=FALSE)+
+    tm_credits(number, position=c(0,0.85), size=1)
+  return(tmap)
+}
 ```
 ```{r}
-Gi_LWard_Local_Density <- points_sf_joined %>%
-  pull(density) %>%
-  as.vector()%>%
-  localG(., Ward.lw)
-head(Gi_LWard_Local_Density)
+tmap_moranlegendfun <- function(londonpointsyear){
+  breaks1<-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
+  MoranColours<- rev(brewer.pal(8, "RdBu"))
+  tm_local_moran <- I_ward_localfun(londonpointsyear)
+  legend <- tm_shape(tm_local_moran) +
+    tm_polygons("charge_count_Iz",
+                breaks=breaks1,
+                palette=MoranColours,
+                title="Local Moran's I, Charge Points in London") +
+    tm_scale_bar(position=c(0.2,0.04), text.size=0.6)+
+    tm_compass(north=0, position=c(0.65,0.2))+
+   
+    tm_layout(title = "Charge Points Local Moran's I", 
+              legend.title.size=1,
+              legend.text.size = 0.6,
+              legend.only = TRUE, 
+              legend.position=c(0.2,0.25),asp=0.1)
+  
+  return(legend)
+}
 ```
-```{r}
-points_sf_joined <- points_sf_joined %>%
-  mutate(density_G = as.numeric(Gi_LWard_Local_Density))
 
-GIColours<- rev(brewer.pal(8, "RdBu"))
-#now plot on an interactive map
-tm_shape(points_sf_joined) +
+
+```{r}
+tm_local_moran14 <- tmap_local_moranfun(londonpoints2014, "a)")
+tm_local_moran17 <- tmap_local_moranfun(londonpoints2017, "b)")
+tm_local_moran20 <- tmap_local_moranfun(londonpoints2020, "c)")
+```
+```{r}
+moran_legend <- tmap_moranlegendfun(londonpoints2020)
+
+local_moran <- tmap_arrange(tm_local_moran14, 
+                            tm_local_moran17, 
+                            tm_local_moran20, 
+                            moran_legend, ncol=2)
+local_moran
+```
+
+```{r}
+tmap_save(local_moran, "Local Moran's I, Charge Points in London.png")
+```
+
+
+### function to run Gi*
+
+```{r}
+Gi_ward_local_densityfun <- function(londonpointsyear){
+  ward_lw <- ward_lwfun(londonpointsyear)
+  
+  Gi_ward_local_density <- londonpointsyear %>% 
+    pointsjoinedfun(.) %>% 
+    pull(density) %>%
+    as.vector()%>%
+    localG(., ward_lw)
+  
+  density_Gi <- londonpointsyear %>% 
+    pointsjoinedfun(.) %>% 
+    mutate(density_G = as.numeric(Gi_ward_local_density))
+  
+  return(density_Gi)
+}
+```
+
+
+### function to run tmap for Gi*
+
+```{r}
+tmap_Gifun <- function(londonpointsyear, number){
+  breaks1<-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
+  GIColours<- rev(brewer.pal(8, "RdBu"))
+  density_Gi <- Gi_ward_local_densityfun(londonpointsyear)
+  
+  tmap <- tm_shape(density_Gi) +
     tm_polygons("density_G",
-        style="fixed",
-        breaks=breaks1,
-        palette=GIColours,
-        midpoint=NA,
-        title="Gi*, Charge Points in London")
+                breaks=breaks1,
+                palette=GIColours,
+                title="Gi*, Charge Points in London") +
+    tm_legend(show=FALSE)+
+    tm_layout(frame=FALSE)+
+    tm_credits(number, position=c(0,0.85), size=1)
+  
+  return(tmap)
+}
+```
+
+```{r}
+G1 <- tmap_Gifun(londonpoints2014, "a)")
+G2 <- tmap_Gifun(londonpoints2017, "b)")
+G3 <- tmap_Gifun(londonpoints2020, "c)")
+```
+
+```{r}
+tmap_Gilegendfun <- function(londonpointsyear){
+  breaks1<-c(-1000,-2.58,-1.96,-1.65,1.65,1.96,2.58,1000)
+  GIColours<- rev(brewer.pal(8, "RdBu"))
+  density_Gi <- Gi_ward_local_densityfun(londonpointsyear)
+  legend <- tm_shape(density_Gi) +
+    tm_polygons("density_G",
+                breaks=breaks1,
+                palette=GIColours,
+                title="Gi*, Charge Points in London") +
+    tm_scale_bar(position=c(0.2,0.04), text.size=0.6)+
+    tm_compass(north=0, position=c(0.65,0.2))+
+   
+    tm_layout(title = "Charge Points Gi* Density", 
+              legend.title.size=1,
+              legend.text.size = 0.6,
+              legend.only = TRUE, 
+              legend.position=c(0.2,0.25),asp=0.1)
+  
+  return(legend)
+}
+```
+```{r}
+Gi_legend <- tmap_Gilegendfun(londonpoints2020)
+
+Gi <- tmap_arrange(G1, G2, G3, Gi_legend, ncol=2)
+Gi
 ```
 
